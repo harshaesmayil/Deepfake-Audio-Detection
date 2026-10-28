@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telltale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --paper: #fbf9f5;
+    --ink: #1f1d1a;
+    --muted: #6d675d;
+    --line: #ddd7cb;
+    --human: #3b6150;
+    --synth: #b04f2b;
+    --unsure: #9a7b2e;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171512; --paper: #1e1b17; --ink: #ece7dd; --muted: #a29b8e; --line: #34302a;
+      --human: #86b9a0; --synth: #e08a63; --unsure: #d2b25f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; color: var(--ink); background: var(--bg);
+    font: 16px/1.6 var(--sans);
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 56px 20px 80px; }
+  header { margin-bottom: 40px; }
+  .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font: 500 clamp(34px, 7vw, 48px)/1.1 var(--serif); margin: 10px 0 14px; letter-spacing: -.01em; }
+  .lede { color: var(--muted); margin: 0; max-width: 52ch; }
+
+  .drop {
+    display: block; border: 1px dashed var(--muted); border-radius: 6px; padding: 34px 20px;
+    text-align: center; cursor: pointer; background: var(--paper);
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--ink); background: transparent; }
+  .drop strong { font-weight: 500; }
+  .drop small { display: block; color: var(--muted); margin-top: 4px; }
+  input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .drop:focus-within { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  .clip { margin-top: 28px; display: none; }
+  .clip.on { display: block; }
+  .clip-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .clip-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .clip-meta { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  canvas { display: block; width: 100%; height: 72px; margin: 14px 0 10px; }
+  audio { width: 100%; height: 38px; }
+
+  .note { font-size: 14px; color: var(--unsure); margin: 10px 0 0; }
+  .error { font-size: 15px; color: var(--synth); margin: 14px 0 0; }
+
+  .actions { margin-top: 20px; display: flex; gap: 14px; align-items: center; }
+  button {
+    font: 500 15px var(--sans); background: var(--ink); color: var(--bg);
+    border: 0; border-radius: 4px; padding: 11px 22px; cursor: pointer;
+  }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .link { background: none; color: var(--muted); padding: 11px 0; text-decoration: underline; text-underline-offset: 3px; font-weight: 400; }
+  .status { color: var(--muted); font-size: 14px; }
+
+  .result { margin-top: 48px; padding-top: 30px; border-top: 1px solid var(--line); display: none; }
+  .result.on { display: block; }
+  .verdict { font: 500 clamp(28px, 6vw, 38px)/1.15 var(--serif); margin: 0 0 6px; }
+  .verdict.human { color: var(--human); }
+  .verdict.synthetic { color: var(--synth); }
+  .verdict.inconclusive { color: var(--unsure); }
+  .sub { color: var(--muted); margin: 0 0 26px; }
+
+  .bars { display: grid; gap: 12px; }
+  .bar-row { display: grid; grid-template-columns: 78px 1fr 44px; gap: 12px; align-items: center; font-size: 14px; }
+  .track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; width: 0; transition: width .6s ease; }
+  .fill.h { background: var(--human); }
+  .fill.s { background: var(--synth); }
+  .bar-row span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+  h2 { font: 500 13px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 34px 0 12px; }
+  .segs { display: flex; gap: 4px; }
+  .seg { flex: 1; min-width: 6px; height: 26px; border-radius: 3px; }
+  .seg-cap { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  details { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 14px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  dl { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 14px; margin: 14px 0 0; }
+  dt { color: var(--muted); } dd { margin: 0; word-break: break-all; }
+
+  .caveat { margin-top: 36px; font-size: 14px; color: var(--muted); max-width: 60ch; }
+  footer { margin-top: 64px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">Voice check</div>
+    <h1>Is this voice a person?</h1>
+    <p class="lede">Drop in a short recording. A speech model listens and gives its read on whether the voice is human or synthetic.</p>
+  </header>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.webm">
+    <strong>Choose an audio file</strong> or drop it here
+    <small id="limits">MP3, WAV, M4A, OGG, FLAC</small>
+  </label>
+
+  <section class="clip" id="clip">
+    <div class="clip-head">
+      <span class="clip-name" id="name"></span>
+      <span class="clip-meta" id="meta"></span>
+    </div>
+    <canvas id="wave"></canvas>
+    <audio id="player" controls></audio>
+    <p class="note" id="note" hidden></p>
+    <p class="error" id="err" hidden></p>
+    <div class="actions">
+      <button id="go" disabled>Analyze</button>
+      <button class="link" id="clear" type="button">Clear</button>
+      <span class="status" id="status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="result" id="result" aria-live="polite">
+    <p class="verdict" id="verdict"></p>
+    <p class="sub" id="sub"></p>
+    <div class="bars">
+      <div class="bar-row"><span>Human</span><div class="track"><div class="fill h" id="hbar"></div></div><span id="hval"></span></div>
+      <div class="bar-row"><span>Synthetic</span><div class="track"><div class="fill s" id="sbar"></div></div><span id="sval"></span></div>
+    </div>
+
+    <div id="segwrap">
+      <h2>Across the clip</h2>
+      <div class="segs" id="segs"></div>
+      <div class="seg-cap"><span>0 s</span><span id="segend"></span></div>
+    </div>
+
+    <details>
+      <summary>Technical details</summary>
+      <dl id="tech"></dl>
+    </details>
+
+    <p class="caveat">The displayed score may be temperature-adjusted; it is not a calibrated probability or proof. A temperature below 1 sharpens the model's scores but does not improve detection accuracy. Check the raw score in Technical details. A clip can fool the model, especially with languages, microphones or voice generators unlike its training data.</p>
+  </section>
+
+  <footer>Audio is converted in your browser and analysed in memory. It is not stored.</footer>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const TARGET_SR = 16000;
+  let cfg = { min_seconds: 2, max_seconds: 15 };
+  let file = null, buffer = null, objectUrl = null;
+
+  fetch('/api/config').then(r => r.json()).then(c => {
+    cfg = c;
+    $('limits').textContent = `MP3, WAV, M4A, OGG, FLAC · ${c.min_seconds}–${c.max_seconds} seconds`;
+  }).catch(() => {});
+
+  const drop = $('drop');
+  ['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', ev => { if (ev.dataTransfer.files[0]) load(ev.dataTransfer.files[0]); });
+  $('file').addEventListener('change', ev => { if (ev.target.files[0]) load(ev.target.files[0]); });
+  $('clear').addEventListener('click', reset);
+  $('go').addEventListener('click', analyze);
+
+  function setError(msg) { $('err').textContent = msg || ''; $('err').hidden = !msg; }
+  function setNote(msg) { $('note').textContent = msg || ''; $('note').hidden = !msg; }
+  const fmt = s => s >= 60 ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : `${s.toFixed(1)} s`;
+
+  function reset() {
+    file = buffer = null;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+    $('file').value = '';
+    $('clip').classList.remove('on');
+    $('result').classList.remove('on');
+    setError(''); setNote(''); $('status').textContent = '';
+  }
+
+  async function load(f) {
+    reset();
+    file = f;
+    $('clip').classList.add('on');
+    $('name').textContent = f.name;
+    $('meta').textContent = 'reading…';
+    $('go').disabled = true;
+    objectUrl = URL.createObjectURL(f);
+    $('player').src = objectUrl;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      buffer = await ctx.decodeAudioData(await f.arrayBuffer());
+      ctx.close();
+    } catch (e) {
+      $('meta').textContent = '';
+      setError("This browser couldn't decode that file. Try converting it to WAV or MP3.");
+      return;
+    }
+    const d = buffer.duration;
+    $('meta').textContent = fmt(d);
+    drawWave(buffer);
+    if (d < cfg.min_seconds) {
+      setError(`This clip is ${fmt(d)} long. It needs at least ${cfg.min_seconds} seconds of speech to judge.`);
+      return;
+    }
+    if (d > cfg.max_seconds) setNote(`Longer than ${cfg.max_seconds} seconds, so only the first ${cfg.max_seconds} seconds will be analysed.`);
+    $('go').disabled = false;
+  }
+
+  function drawWave(buf) {
+    const c = $('wave'), dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    c.width = w * dpr; c.height = h * dpr;
+    const g = c.getContext('2d'); g.scale(dpr, dpr);
+    const data = buf.getChannelData(0), bars = Math.floor(w / 4), step = Math.floor(data.length / bars);
+    const peaks = [];
+    for (let i = 0; i < bars; i++) {
+      let m = 0;
+      for (let j = 0; j < step; j += 16) m = Math.max(m, Math.abs(data[i * step + j] || 0));
+      peaks.push(m);
+    }
+    const top = Math.max(...peaks, 0.01);
+    g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+    peaks.forEach((p, i) => {
+      const bh = Math.max(2, (p / top) * h);
+      g.fillRect(i * 4, (h - bh) / 2, 2, bh);
+    });
+  }
+
+  async function toWav16k(buf) {
+    const seconds = Math.min(buf.duration, cfg.max_seconds);
+    const len = Math.floor(seconds * TARGET_SR);
+    const off = new OfflineAudioContext(1, len, TARGET_SR);
+    const src = off.createBufferSource();
+    src.buffer = buf; src.connect(off.destination); src.start();
+    const out = (await off.startRendering()).getChannelData(0);
+    const view = new DataView(new ArrayBuffer(44 + len * 2));
+    const str = (o, s) => [...s].forEach((ch, i) => view.setUint8(o + i, ch.charCodeAt(0)));
+    str(0, 'RIFF'); view.setUint32(4, 36 + len * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, TARGET_SR, true); view.setUint32(28, TARGET_SR * 2, true);
+    view.setUint16(32, 2, true); view.setUint16(34, 16, true); str(36, 'data'); view.setUint32(40, len * 2, true);
+    for (let i = 0; i < len; i++) {
+      const s = Math.max(-1, Math.min(1, out[i]));
+      view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+    return new Blob([view], { type: 'audio/wav' });
+  }
+
+  async function analyze() {
+    if (!buffer) return;
+    setError(''); $('result').classList.remove('on');
+    $('go').disabled = true; $('status').textContent = 'Listening…';
+    try {
+      const wav = await toWav16k(buffer);
+      const fd = new FormData(); fd.append('file', wav, 'clip.wav');
+      const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.detail || `Request failed (${res.status})`);
+      show(body);
+      $('status').textContent = '';
+    } catch (e) {
+      $('status').textContent = '';
+      setError(e.message || 'Something went wrong.');
+    } finally {
+      $('go').disabled = false;
+    }
+  }
+
+  function show(r) {
+    const v = $('verdict');
+    const text = { human: 'Sounds human', synthetic: 'Likely synthetic', inconclusive: "Can't tell" }[r.verdict];
+    const sub = {
+      human: 'The model leans towards a real person speaking.',
+      synthetic: 'The model leans towards generated or cloned speech.',
+      inconclusive: 'The score is between the human and synthetic decision thresholds.'
+    }[r.verdict];
+    v.textContent = text; v.className = 'verdict ' + r.verdict;
+    $('sub').textContent = sub + (r.truncated ? ` Only the first ${r.duration} s were analysed.` : '');
+    const pct = x => Math.round(x * 100) + '%';
+    $('hval').textContent = pct(r.human_score); $('sval').textContent = pct(r.ai_score);
+    requestAnimationFrame(() => { $('hbar').style.width = pct(r.human_score); $('sbar').style.width = pct(r.ai_score); });
+
+    const segs = $('segs'); segs.innerHTML = '';
+    r.segments.forEach(s => {
+      const d = document.createElement('div');
+      d.className = 'seg';
+      d.style.flex = String(s.end - s.start);
+      const synthetic = s.ai_score > 0.5;
+      d.style.background = synthetic ? 'var(--synth)' : 'var(--human)';
+      d.style.opacity = String(0.35 + Math.abs(s.ai_score - 0.5) * 1.3);
+      d.title = `${s.start}–${s.end} s · adjusted synthetic score ${Math.round(s.ai_score * 100)}% · raw model score ${Math.round(s.raw_ai_score * 100)}%`;
+      segs.appendChild(d);
+    });
+    $('segend').textContent = fmt(r.duration);
+    $('segwrap').style.display = r.segments.length > 1 ? '' : 'none';
+
+    const rows = [['Model', r.model], ['Revision', r.revision.slice(0, 10)], ['Analysed', fmt(r.duration)],
+      ['Segments', r.segments.length], ['Raw model AI score', pct(r.raw_ai_score)],
+      ['Score temperature', r.score_temperature],
+      ['Synthetic decision threshold', `${Math.round(r.ai_threshold * 100)}% (scores above this are labelled synthetic)`],
+      ['Human decision threshold', `${Math.round(r.human_threshold * 100)}% (scores below this are labelled human)`]];
+    $('tech').innerHTML = rows.map(([k, val]) => `<dt>${k}</dt><dd></dd>`).join('');
+    [...$('tech').querySelectorAll('dd')].forEach((dd, i) => dd.textContent = rows[i][1]);
+
+    $('result').classList.add('on');
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+})();
+</script>
+</body>
+</html>
