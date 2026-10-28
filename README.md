@@ -15,7 +15,7 @@ Then open http://127.0.0.1:8000
 
 The first start downloads the model (a few hundred MB) from Hugging Face, so it needs internet and a minute or two. After that it is cached. Watch the terminal: when it says "Model ready" you can analyse clips. `http://127.0.0.1:8000/api/health` tells you if the model loaded, and if not, why.
 
-## What changed compared with the original
+## Changes from previous version
 
 - **Any audio format works.** The page decodes MP3, M4A, WAV, OGG and FLAC in the browser, converts to 16 kHz mono WAV, then uploads. Format and sample-rate mismatches were a likely cause of errors on new files.
 - **Shorter limits.** Minimum 2 s, maximum 15 s. A longer clip is not rejected: the first 15 s are analysed and the page says so. Change with `MIN_SECONDS` and `MAX_SECONDS`.
