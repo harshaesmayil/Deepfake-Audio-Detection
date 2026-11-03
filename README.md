@@ -2,6 +2,12 @@
 
 Upload a voice clip and get a speech model's read on whether it is human or synthetic.
 
+<img width="777" height="702" alt="Screenshot 2026-10-28 224004" src="https://github.com/user-attachments/assets/670f0d67-b8d1-4f6e-9f97-6fa323999f1b" />
+
+<img width="742" height="781" alt="Screenshot 2026-10-28 015518" src="https://github.com/user-attachments/assets/9b2b39c6-9ade-452d-9d23-86c7b2505a52" />
+
+
+
 ## Run it (Windows PowerShell)
 
 ```
